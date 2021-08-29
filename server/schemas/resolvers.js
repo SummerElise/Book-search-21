@@ -42,11 +42,11 @@ const resolvers = {
             return { token, user};
         },
 
-        saveBook: async (parent, { book }, context) => {
+        saveBook: async (parent, { bookData }, context) => {
             if (context.user) {
-                const user = await User.findByIdAndUpdate(
+                const updatedUser = await User.findByIdAndUpdate(
                 { _id: context.user._id },
-                { $push: { savedBooks: book } },
+                { $push: { savedBooks: bookData } },
                 { new: true }  
                 );
 
@@ -63,7 +63,7 @@ const resolvers = {
                 { new: true }    
                 );
 
-                return user;
+                return updatedUser;
             }
 
             throw new AuthenticationError("Your book was not deleted! Please try again.")

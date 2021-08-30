@@ -7,47 +7,46 @@ const { AuthenticationError } = require('apollo-server-express');
 const resolvers = {
     Query: {
         me: async (parent, args, context) => {
-           if (context.user) {
-        const userData = await User.findOne({_id: context.user_id })
-        .select('-__v -password')
-        .populate('books')
-     
-        return userData
-    }
-
-    throw new AuthenticationError("You need to be logged in!");
-}
-    },
-    Mutation: {
-        createUser: async (parent, args) => {
-            const user = await User.create(args);
-            const token = signToken(user);
-            return { token, user };
-        },
-       
-        login: async (parent, { email, password }) => {
-            const user = await User.findOne({ email });
-
-            if (!user) {
-                throw new AuthenticationError("No user with this email address exists!")
-            }
-
-            const correctPassword = await user.isCorrectPassword(password);
-
-            if (!correctPassword) {
-                throw new AuthenticationError ("Password is incorrect!")
-            }
-
-            const token = signToken(user);
-            return { token, user};
-        },
-
-        saveBook: async (parent, { bookData }, context) => {
             if (context.user) {
-                const updatedUser = await User.findByIdAndUpdate(
+              return User.findOne({ _id: context.user._id }).populate("savedBooks");
+            }
+            throw new AuthenticationError(
+              "You need to log in to perform this query!"
+            );
+          },
+        },
+
+    Mutation: {
+       login: async (parent, { email, password }) => {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new AuthenticationError("Invalid email address");
+      }
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw new AuthenticationError("Invalid password");
+      }
+
+      const token = signToken(user);
+
+      return { token, user };
+    },
+
+    createUser: async (parent, { username, email, password }) => {
+        const user = await User.create({ username, email, password });
+        const token = signToken(user);
+        return { token, user };
+      },
+  
+
+    saveBook: async (parent, { book }, context) => {
+            if (context.user) {
+                const user = await User.findOneAndUpdate(
                 { _id: context.user._id },
-                { $push: { savedBooks: bookData } },
-                { new: true }  
+                { $addToSet: { savedBooks: book } },
+                { new: true, runValidators: true }  
                 );
 
                 return user;
@@ -63,7 +62,7 @@ const resolvers = {
                 { new: true }    
                 );
 
-                return updatedUser;
+                return user;
             }
 
             throw new AuthenticationError("Your book was not deleted! Please try again.")

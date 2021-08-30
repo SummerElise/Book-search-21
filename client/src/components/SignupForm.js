@@ -3,7 +3,7 @@ import { Form, Button, Alert } from 'react-bootstrap';
 
 import { useMutation } from '@apollo/client';
 import Auth from '../utils/auth';
-import { CREATE_USER } from '../utils/mutations'
+import { CREATE_USER } from '../utils/mutations';
 
 const SignupForm = () => {
   // set initial form state

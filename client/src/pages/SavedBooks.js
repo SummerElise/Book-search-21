@@ -12,7 +12,11 @@ const SavedBooks = () => {
 
   const [deleteBook] = useMutation(DELETE_BOOK)
 
-  const userData = data?.me || [];
+  const userData = data?.me ?? [];
+
+  if (loading) {
+    return <h2>LOADING...</h2>;
+  }
 
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
@@ -24,23 +28,15 @@ const SavedBooks = () => {
     }
 
     try {
-      // eslint-disable-next-line
-     const { data } = await deleteBook({
-       variables: {
-       bookId,
-       }
-     });
+      await deleteBook({
+        variables: { bookId },
+      });
 
       removeBookId(bookId);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
   };
-
-  // if data isn't here yet, say so
-  if (loading) {
-    return <h2>LOADING...</h2>;
-  }
 
   return (
     <>
